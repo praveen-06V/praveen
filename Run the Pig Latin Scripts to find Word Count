@@ -1,15 +1,50 @@
--- Load the input data
-data = LOAD 'input.txt' USING PigStorage(' ') AS (line:chararray);
-
--- Split each line into words
-words = FOREACH data GENERATE FLATTEN(TOBAG(FLATTEN(STRSPLIT(line, ' ')))) AS word;
-
--- Count occurrences of each word
-word_count = GROUP words BY word;
-
--- Calculate the count for each word
-word_count_result = FOREACH word_count GENERATE group AS word, COUNT(words) AS count;
-
--- Store the result
-STORE word_count_result INTO 'word_count_output' USING PigStorage(','); 
-
+Aim:
+To run the Pig Latin Scripts to find Word Count.
+Algorithm:
+Step 1: Load the data from HDFS:
+Use Load statement to load the data into a relation. As keyword used to declare column
+names, as we don’t have any columns, we declared only one column named line.
+Step 2: Convert the Sentence into words:
+The data we have is in sentences. So, we must convert that data into words using,
+TOKENIZE Function.
+(TOKENIZE(line));
+(or)
+If we have any delimiter like space, we can specify as
+(TOKENIZE(line,' '));
+Output will be like this:
+({(This),(is),(a),(hadoop),(class)})
+({(hadoop),(is),(a),(bigdata),(technology)})
+but we have to convert it into multiple rows like below
+(This)
+(is)
+(a)
+(hadoop)
+(class)
+(hadoop)
+(is)
+(a)
+(bigdata)
+(technology)
+Step 3: Convert Column into Rows:
+Mean we must convert every line of data into multiple rows, for this we have function
+called Flatten in pig. Using FLATTEN function the bag is converted into tuple, means
+the array of strings converted into multiple rows.
+Step 4: Apply GROUP BY:
+We must count each word’s occurrence, for that we must group all the words.
+Step 5: Generate word count:
+We can print the word count on console using Dump.
+Program:
+input = LOAD '/path/to/file/' AS(line:Chararray);
+Words = FOREACH input GENERATE FLATTEN(TOKENIZE(line,' ')) AS word;
+Grouped = GROUP words BY word;
+wordcount = FOREACH Grouped GENERATE group, COUNT(words);
+Input:
+This is a Hadoop post Hadoop is a bigdata technology.
+Output:
+(a,2)
+(is,2)
+(This,1)
+(class,1)
+(hadoop,2)
+(bigdata,1)
+(technology,1)
