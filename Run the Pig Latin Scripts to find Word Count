@@ -1,4 +1,15 @@
-input = LOAD '/path/to/file/' AS(line:Chararray);
-Words = FOREACH input GENERATE FLATTEN(TOKENIZE(line,' ')) AS word;
-Grouped = GROUP words BY word;
-wordcount = FOREACH Grouped GENERATE group, COUNT(words);
+-- Load the input data
+data = LOAD 'input.txt' USING PigStorage(' ') AS (line:chararray);
+
+-- Split each line into words
+words = FOREACH data GENERATE FLATTEN(TOBAG(FLATTEN(STRSPLIT(line, ' ')))) AS word;
+
+-- Count occurrences of each word
+word_count = GROUP words BY word;
+
+-- Calculate the count for each word
+word_count_result = FOREACH word_count GENERATE group AS word, COUNT(words) AS count;
+
+-- Store the result
+STORE word_count_result INTO 'word_count_output' USING PigStorage(','); 
+
